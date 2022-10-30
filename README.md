@@ -1,5 +1,7 @@
 thieme-dl - download PDFs from eref.thieme.de
 
+> :warning: **This is only for testing purpose**: Pay attention to the usage policy of thieme.de. Use at your own risk.
+
 - [INSTALLATION](#installation)
 - [DESCRIPTION](#description)
 - [DEVELOPER INSTRUCTIONS](#developer-instructions)
