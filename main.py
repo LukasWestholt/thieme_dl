@@ -47,12 +47,14 @@ def check_url(part, cookie, try_num=0):
 
     try:
         response = requests.get(url, cookies={cookie["name"]: cookie["value"]})
+        result = response.status_code != 404
     except requests.exceptions.TooManyRedirects:
         print(" -> Authentication failed")
         print("Invalid auth data, reauth...")
         raise NeedReAuth
-
-    result = response.status_code != 404
+    except requests.exceptions.ConnectionError as e:
+        print("--> " + str(e))
+        result = False
 
     if not result and try_num < 1:
         return check_url(part, cookie, try_num + 1)
@@ -75,6 +77,18 @@ def download(url, try_num=0):
         time.sleep(.8)
         return download(url, try_num + 1)
     return result
+
+
+def test_auth(cookie):
+    try:
+        response = requests.get("https://eref.thieme.de/my/profile", cookies={cookie["name"]: cookie["value"]},
+                                allow_redirects=False)
+    except (requests.exceptions.TooManyRedirects, requests.exceptions.ConnectionError) as e:
+        print("test_auth: " + str(e))
+        raise NeedReAuth
+    if response.status_code in (302, 404):
+        print("test_auth: " + str(response.status_code) + " detected")
+        raise NeedReAuth
 
 
 def do_auth():
@@ -148,7 +162,8 @@ try:
         auth = pickle.load(f)
     load_site(HOME_URL, web, cookie={'name': auth["name"], 'value': auth["value"]})
     print("Cookie: " + str(auth))
-except FileNotFoundError:
+    test_auth(auth)
+except (FileNotFoundError, NeedReAuth):
     auth = do_auth()
 
 item = list()
